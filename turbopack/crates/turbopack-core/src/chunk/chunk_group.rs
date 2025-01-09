@@ -7,8 +7,9 @@ use turbo_tasks::{FxIndexMap, ResolvedVc, TryFlatJoinIterExt, TryJoinIterExt, Va
 
 use super::{
     availability_info::AvailabilityInfo, available_modules::AvailableModulesInfo, chunk_content,
-    chunking::make_chunks, AsyncModuleInfo, Chunk, ChunkContentResult, ChunkItem, ChunkItemTy,
-    ChunkItemWithAsyncModuleInfo, ChunkableModule, ChunkingContext,
+    chunk_graph::ChunkGraph, chunking::make_chunks, AsyncModuleInfo, Chunk, ChunkContentResult,
+    ChunkItem, ChunkItemTy, ChunkItemWithAsyncModuleInfo, ChunkableModule, ChunkingContext,
+    ChunkingContextExt,
 };
 use crate::{
     environment::ChunkLoading, module::Module, module_graph::ModuleGraph, output::OutputAssets,
@@ -32,6 +33,7 @@ pub async fn make_chunk_group(
         ChunkLoading::Edge
     );
     let should_trace = *chunking_context.is_tracing_enabled().await?;
+    let chunk_graph = &*chunking_context.chunk_graph().await?;
 
     let ChunkContentResult {
         chunkable_modules,
@@ -41,13 +43,24 @@ pub async fn make_chunk_group(
         forward_edges_inherit_async,
         local_back_edges_inherit_async,
         available_async_modules_back_edges_inherit_async,
-    } = chunk_content(
-        chunk_group_entries,
-        availability_info,
-        can_split_async,
-        should_trace,
-    )
-    .await?;
+    } = Default::default();
+
+    // let ChunkContentResult {
+    //     chunkable_modules,
+    //     async_modules,
+    //     traced_modules,
+    //     passthrough_modules,
+    //     forward_edges_inherit_async,
+    //     local_back_edges_inherit_async,
+    //     available_async_modules_back_edges_inherit_async,
+    // } = chunk_graph
+    //     .chunk_content(
+    //         chunk_group_entries,
+    //         availability_info,
+    //         can_split_async,
+    //         should_trace,
+    //     )
+    //     .await?;
 
     // Find all local chunk items that are self async
     let self_async_children = chunkable_modules

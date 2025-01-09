@@ -6,9 +6,10 @@ use turbo_tasks_fs::FileSystemPath;
 use turbopack_core::{
     chunk::{
         availability_info::AvailabilityInfo,
+        chunk_graph::ChunkGraph,
         chunk_group::{make_chunk_group, MakeChunkGroupResult},
         module_id_strategies::{DevModuleIdStrategy, ModuleIdStrategy},
-        Chunk, ChunkGroupResult, ChunkItem, ChunkableModule, ChunkingContext,
+        Chunk, ChunkGroupResult, ChunkItem, ChunkableModule, ChunkingContext, ChunkingContextExt,
         EntryChunkGroupResult, EvaluatableAssets, MinifyType, ModuleId,
     },
     environment::Environment,
@@ -151,6 +152,7 @@ pub struct BrowserChunkingContext {
     manifest_chunks: bool,
     /// The module id strategy to use
     module_id_strategy: ResolvedVc<Box<dyn ModuleIdStrategy>>,
+    chunk_graph: ResolvedVc<ChunkGraph>,
 }
 
 impl BrowserChunkingContext {
@@ -162,6 +164,7 @@ impl BrowserChunkingContext {
         chunk_root_path: ResolvedVc<FileSystemPath>,
         asset_root_path: ResolvedVc<FileSystemPath>,
         environment: ResolvedVc<Environment>,
+        chunk_graph: ResolvedVc<ChunkGraph>,
         runtime_type: RuntimeType,
     ) -> BrowserChunkingContextBuilder {
         BrowserChunkingContextBuilder {
@@ -185,6 +188,7 @@ impl BrowserChunkingContext {
                 minify_type: MinifyType::NoMinify,
                 manifest_chunks: false,
                 module_id_strategy: ResolvedVc::upcast(DevModuleIdStrategy::new_resolved()),
+                chunk_graph,
             },
         }
     }
@@ -575,5 +579,11 @@ impl ChunkingContext for BrowserChunkingContext {
         } else {
             self.chunk_item_id_from_ident(AsyncLoaderModule::asset_ident_for(module))
         })
+    }
+
+    #[turbo_tasks::function]
+    async fn chunk_graph(self: Vc<Self>) -> Result<Vc<ChunkGraph>> {
+        let this = self.await?;
+        Ok(*this.chunk_graph)
     }
 }
