@@ -3,6 +3,7 @@ use std::{
     fmt::Debug,
     future::IntoFuture,
     hash::{Hash, Hasher},
+    marker::PhantomData,
     ops::Deref,
 };
 
