@@ -5,10 +5,7 @@ use turbo_tasks::{trace::TraceRawVcs, NonLocalValue, ResolvedVc, TaskInput, Upca
 use turbo_tasks_fs::FileSystemPath;
 use turbo_tasks_hash::DeterministicHash;
 
-use super::{
-    availability_info::AvailabilityInfo, chunk_graph::ChunkGraph, ChunkableModule,
-    EvaluatableAssets,
-};
+use super::{availability_info::AvailabilityInfo, ChunkableModule, EvaluatableAssets};
 use crate::{
     chunk::{ChunkItem, ModuleId},
     environment::Environment,
@@ -138,9 +135,6 @@ pub trait ChunkingContext {
         module_graph: Vc<ModuleGraph>,
         availability_info: Value<AvailabilityInfo>,
     ) -> Vc<ChunkGroupResult>;
-
-    /// TODO: Expose more purpose-oriented API or remove from chunking context entirely
-    fn chunk_graph(self: Vc<Self>) -> Vc<ChunkGraph>;
 
     /// Generates an output chunk that:
     /// * loads the given extra_chunks in addition to the generated chunks; and
